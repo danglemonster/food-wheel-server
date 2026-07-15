@@ -1,0 +1,244 @@
+{
+  "items": [
+    {
+      "id": "ca7e0eebd1d6",
+      "name": "Cơm tấm",
+      "ownerId": "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+      "ownerName": "Vân Gay"
+    },
+    {
+      "id": "50f9c784f1ca",
+      "name": "Bún chả",
+      "ownerId": "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+      "ownerName": "Vân Gay"
+    },
+    {
+      "id": "efd6bf6d1d6f",
+      "name": "Pizza",
+      "ownerId": "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+      "ownerName": "Vân Gay"
+    },
+    {
+      "id": "ecfceea43fbc",
+      "name": "Gỏi cuốốốốốốn",
+      "ownerId": "4d4bccbe-424b-4e98-b2f2-e39f5923f68e",
+      "ownerName": "Bẻo Fan"
+    }
+  ],
+  "lastSpin": {
+    "spinId": 12,
+    "winnerId": "efd6bf6d1d6f",
+    "winnerName": "Pizza",
+    "winnerIndex": 2,
+    "itemsSnapshot": [
+      {
+        "id": "ca7e0eebd1d6",
+        "name": "Cơm tấm",
+        "ownerId": "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+        "ownerName": "Vân Gay"
+      },
+      {
+        "id": "50f9c784f1ca",
+        "name": "Bún chả",
+        "ownerId": "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+        "ownerName": "Vân Gay"
+      },
+      {
+        "id": "efd6bf6d1d6f",
+        "name": "Pizza",
+        "ownerId": "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+        "ownerName": "Vân Gay"
+      },
+      {
+        "id": "1893133ac70c",
+        "name": "Gà rán",
+        "ownerId": "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+        "ownerName": "Vân Gay"
+      }
+    ],
+    "timestamp": 1784098186515
+  },
+  "spinId": 12,
+  "history": [
+    {
+      "spinId": 12,
+      "winnerName": "Pizza",
+      "winnerOwnerName": "Vân Gay",
+      "totalItems": 4,
+      "timestamp": 1784098186515
+    },
+    {
+      "spinId": 11,
+      "winnerName": "Cơm tấm",
+      "winnerOwnerName": "Vân Gay",
+      "totalItems": 2,
+      "timestamp": 1784098175696
+    },
+    {
+      "spinId": 10,
+      "winnerName": "Mì Quảng",
+      "winnerOwnerName": "Vân Gay",
+      "totalItems": 27,
+      "timestamp": 1784097797125
+    },
+    {
+      "spinId": 9,
+      "winnerName": "Mì Quảng",
+      "winnerOwnerName": "Vân Gay",
+      "totalItems": 27,
+      "timestamp": 1784097788614
+    },
+    {
+      "spinId": 8,
+      "winnerName": "Bún chả",
+      "winnerOwnerName": "Đăng",
+      "totalItems": 4,
+      "timestamp": 1784092150046
+    },
+    {
+      "spinId": 7,
+      "winnerName": "Phở bò",
+      "winnerOwnerName": "Đăng",
+      "totalItems": 4,
+      "timestamp": 1784092141289
+    },
+    {
+      "spinId": 6,
+      "winnerName": "Bún chả",
+      "winnerOwnerName": "Đăng",
+      "totalItems": 2,
+      "timestamp": 1784092029203
+    },
+    {
+      "spinId": 5,
+      "winnerName": "Phở bò",
+      "winnerOwnerName": "Đăng",
+      "totalItems": 2,
+      "timestamp": 1784092017945
+    },
+    {
+      "spinId": 4,
+      "winnerName": "Phở bò",
+      "winnerOwnerName": "Đăng",
+      "totalItems": 2,
+      "timestamp": 1784092011906
+    },
+    {
+      "spinId": 3,
+      "winnerName": "Phở bò",
+      "winnerOwnerName": "Đăng",
+      "totalItems": 2,
+      "timestamp": 1784092005568
+    },
+    {
+      "spinId": 2,
+      "winnerName": "Phở bò",
+      "winnerOwnerName": "Đăng",
+      "totalItems": 2,
+      "timestamp": 1784091998932
+    },
+    {
+      "spinId": 1,
+      "winnerName": "Bún chả",
+      "winnerOwnerName": "Đăng",
+      "totalItems": 2,
+      "timestamp": 1784091992524
+    }
+  ],
+  "chat": [
+    {
+      "id": "b0db1f9af8ec",
+      "system": true,
+      "name": "Đăng",
+      "ownerId": "c550a1e1-cb52-4194-9a79-4eee78d082f8",
+      "text": "Đăng đã tham gia phòng 👋",
+      "timestamp": 1784091950383
+    },
+    {
+      "id": "229a383db44a",
+      "name": "Đăng",
+      "ownerId": "c550a1e1-cb52-4194-9a79-4eee78d082f8",
+      "text": "hello",
+      "timestamp": 1784092038796
+    },
+    {
+      "id": "a1517c2ae1cd",
+      "system": true,
+      "name": "Vân Gay",
+      "ownerId": "41dfc66b-00e9-48a2-8321-120252b7de09",
+      "text": "Vân Gay đã tham gia phòng 👋",
+      "timestamp": 1784092063785
+    },
+    {
+      "id": "9909d2297ed0",
+      "name": "Đăng",
+      "ownerId": "c550a1e1-cb52-4194-9a79-4eee78d082f8",
+      "text": "alo",
+      "timestamp": 1784092091367
+    },
+    {
+      "id": "0efb3f817fc7",
+      "name": "Vân Gay",
+      "ownerId": "41dfc66b-00e9-48a2-8321-120252b7de09",
+      "text": "hi",
+      "timestamp": 1784092117545
+    },
+    {
+      "id": "285252b68888",
+      "name": "Vân Gay",
+      "ownerId": "41dfc66b-00e9-48a2-8321-120252b7de09",
+      "text": "hi",
+      "timestamp": 1784092117546
+    },
+    {
+      "id": "5b220cc69eec",
+      "system": true,
+      "name": "Vân Gay",
+      "ownerId": "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+      "text": "Vân Gay đã tham gia phòng 👋",
+      "timestamp": 1784097589375
+    },
+    {
+      "id": "cccae02b6e2f",
+      "name": "Đăng",
+      "ownerId": "c550a1e1-cb52-4194-9a79-4eee78d082f8",
+      "text": "alo",
+      "timestamp": 1784097767212
+    },
+    {
+      "id": "99c629a5a9b2",
+      "name": "Đăng",
+      "ownerId": "c550a1e1-cb52-4194-9a79-4eee78d082f8",
+      "text": "a lo",
+      "timestamp": 1784097774217
+    },
+    {
+      "id": "501285af5f59",
+      "system": true,
+      "name": "Bẻo Fan",
+      "ownerId": "4d4bccbe-424b-4e98-b2f2-e39f5923f68e",
+      "text": "Bẻo Fan đã tham gia phòng 👋",
+      "timestamp": 1784098296391
+    },
+    {
+      "id": "b7d529f06d2e",
+      "name": "Bẻo Fan",
+      "ownerId": "4d4bccbe-424b-4e98-b2f2-e39f5923f68e",
+      "text": "ai làm app hay quá vậy",
+      "timestamp": 1784098380818
+    },
+    {
+      "id": "43a0d02d229e",
+      "name": "Bẻo Fan",
+      "ownerId": "4d4bccbe-424b-4e98-b2f2-e39f5923f68e",
+      "text": "ai làm app hay quá vậy",
+      "timestamp": 1784098380822
+    }
+  ],
+  "joinedIds": [
+    "c550a1e1-cb52-4194-9a79-4eee78d082f8",
+    "41dfc66b-00e9-48a2-8321-120252b7de09",
+    "3b43e75c-29f3-4850-829a-82fa4b29cae0",
+    "4d4bccbe-424b-4e98-b2f2-e39f5923f68e"
+  ]
+}

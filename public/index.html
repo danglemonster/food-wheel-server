@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vòng Quay Món Ăn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:ital,wght@0,500;0,600;0,700;0,800;1,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark:#241B14; --cream:#FBF3E7; --cream-2:#F3E6D2; --ink:#241B14;
+    --chili:#E4572E; --turmeric:#F2B705; --herb:#5B8C5A; --teal:#2F9C95;
+    --paper-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; min-height:100vh;
+    background:
+      radial-gradient(circle at 15% 10%, rgba(242,183,5,0.10), transparent 45%),
+      radial-gradient(circle at 85% 90%, rgba(228,87,46,0.12), transparent 45%),
+      var(--bg-dark);
+    font-family:'Inter', sans-serif; color:var(--cream);
+    padding:32px 16px 64px;
+  }
+  .page{ max-width:1000px; margin:0 auto; }
+  header{ text-align:center; margin-bottom:26px; position:relative; }
+  .eyebrow{ font-family:'Be Vietnam Pro', sans-serif; font-weight:700; letter-spacing:.14em; text-transform:uppercase; font-size:12px; color:var(--turmeric); margin-bottom:6px; }
+  h1{ font-family:'Be Vietnam Pro', sans-serif; font-weight:800; font-size:32px; margin:0 0 8px; }
+  header p{ margin:0; color:rgba(251,243,231,0.65); font-size:14.5px; line-height:1.5; }
+
+  .admin-badge{
+    position:absolute; top:0; right:0;
+    font-size:11px; font-weight:700; font-family:'Be Vietnam Pro', sans-serif;
+    background:var(--herb); color:#fff; padding:5px 10px; border-radius:999px;
+    display:none; align-items:center; gap:5px;
+  }
+  .admin-badge.show{ display:inline-flex; }
+  .who-badge{
+    position:absolute; top:0; left:0;
+    font-size:11px; font-weight:700; font-family:'Be Vietnam Pro', sans-serif;
+    background:rgba(251,243,231,0.12); color:var(--cream); padding:5px 10px; border-radius:999px;
+    display:none; align-items:center; gap:5px; cursor:pointer;
+  }
+  .who-badge.show{ display:inline-flex; }
+
+  .layout{
+    display:grid;
+    grid-template-areas: "center" "left" "right";
+    grid-template-columns: 1fr;
+    gap:20px;
+    align-items:start;
+  }
+  @media (min-width:920px){
+    .layout{
+      grid-template-areas: "left center right";
+      grid-template-columns: 200px minmax(0,480px) 220px;
+      justify-content:center;
+    }
+  }
+  .panel-left{ grid-area:left; }
+  .panel-center{ grid-area:center; }
+  .panel-right{ grid-area:right; }
+
+  .card{ background:var(--cream); color:var(--ink); border-radius:22px; padding:22px 20px 26px; box-shadow:var(--paper-shadow); margin-bottom:20px; position:relative; }
+  .card::before{ content:""; position:absolute; top:0; left:22px; right:22px; height:6px; background:repeating-linear-gradient(90deg, var(--chili) 0 14px, transparent 14px 24px); border-radius:0 0 6px 6px; }
+  .card h2{ font-family:'Be Vietnam Pro', sans-serif; font-weight:700; font-size:15px; margin:8px 0 14px; display:flex; align-items:center; gap:8px; }
+  .card h2 .num{ width:22px; height:22px; border-radius:50%; background:var(--chili); color:#fff; font-size:12px; display:flex; align-items:center; justify-content:center; font-weight:800; }
+
+  .side-card{ background:rgba(251,243,231,0.06); border:1px solid rgba(251,243,231,0.12); border-radius:18px; padding:16px 14px; }
+  .side-card h3{ font-family:'Be Vietnam Pro', sans-serif; font-weight:700; font-size:13px; margin:0 0 12px; color:var(--turmeric); text-transform:uppercase; letter-spacing:.08em; }
+  .side-card + .side-card{ margin-top:16px; }
+  .member-list{ max-height:150px; overflow-y:auto; padding-right:4px; }
+  .member-list::-webkit-scrollbar{ width:6px; }
+  .member-list::-webkit-scrollbar-thumb{ background:rgba(251,243,231,0.2); border-radius:999px; }
+  .member-item{ display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px; color:rgba(251,243,231,0.85); }
+  .member-dot{ width:8px; height:8px; border-radius:50%; background:var(--herb); flex-shrink:0; box-shadow:0 0 0 3px rgba(91,140,90,0.22); }
+  .member-name.me{ color:var(--turmeric); font-weight:700; }
+  #historyList{ max-height:260px; overflow-y:auto; padding-right:4px; }
+  #historyList::-webkit-scrollbar{ width:6px; }
+  #historyList::-webkit-scrollbar-thumb{ background:rgba(251,243,231,0.2); border-radius:999px; }
+
+  .add-row{ display:flex; gap:8px; }
+  .add-row input{ flex:1; border:2px solid var(--cream-2); background:#fff; border-radius:12px; padding:12px 14px; font-size:15px; font-family:'Inter', sans-serif; color:var(--ink); outline:none; transition:border-color .15s ease; }
+  .add-row input:focus{ border-color:var(--chili); }
+  .add-row button{ border:none; background:var(--herb); color:#fff; font-family:'Be Vietnam Pro', sans-serif; font-weight:700; font-size:14px; padding:0 18px; border-radius:12px; cursor:pointer; transition:transform .1s ease, filter .15s ease; }
+  .add-row button:hover{ filter:brightness(1.08); }
+  .add-row button:active{ transform:scale(0.96); }
+  .add-row button:disabled{ background:#C9BBA6; cursor:not-allowed; }
+
+  .tags{ margin-top:14px; display:flex; flex-wrap:wrap; gap:8px; min-height:20px; max-height:150px; overflow-y:auto; padding-right:4px; align-content:flex-start; }
+  .tags::-webkit-scrollbar{ width:6px; }
+  .tags::-webkit-scrollbar-thumb{ background:rgba(36,27,20,0.2); border-radius:999px; }
+  .tag{ background:var(--cream-2); border-radius:999px; padding:6px 8px 6px 14px; font-size:13.5px; font-weight:500; display:flex; align-items:center; gap:6px; animation:pop .18s ease; }
+  @keyframes pop{ from{ transform:scale(0.85); opacity:0;} to{ transform:scale(1); opacity:1;} }
+  .tag .owner{ font-size:11px; color:rgba(36,27,20,0.5); }
+  .tag button{ border:none; background:none; cursor:pointer; color:rgba(36,27,20,0.45); font-size:15px; line-height:1; padding:4px; border-radius:50%; }
+  .tag button:hover{ color:var(--chili); background:rgba(228,87,46,0.1); }
+  .tag button.hidden{ display:none; }
+  .empty-note{ font-size:13px; color:rgba(36,27,20,0.45); font-style:italic; }
+  .error-note{ font-size:13px; color:var(--chili); margin-top:8px; display:none; }
+
+  .suggest-chip{
+    display:block; width:100%; text-align:left;
+    background:rgba(251,243,231,0.08); border:1px solid rgba(251,243,231,0.14);
+    color:var(--cream); font-family:'Inter', sans-serif; font-size:13px;
+    padding:8px 10px; border-radius:10px; margin-bottom:7px; cursor:pointer;
+    transition:background .12s ease, transform .1s ease;
+  }
+  .suggest-chip:hover{ background:rgba(242,183,5,0.16); transform:translateX(2px); }
+
+  .history-item{ padding:9px 0; border-bottom:1px dashed rgba(251,243,231,0.14); }
+  .history-item:last-child{ border-bottom:none; }
+  .history-item .dish{ font-family:'Be Vietnam Pro', sans-serif; font-weight:700; font-size:14px; color:var(--turmeric); }
+  .history-item .meta{ font-size:11.5px; color:rgba(251,243,231,0.5); margin-top:2px; }
+  .history-empty{ font-size:12.5px; color:rgba(251,243,231,0.4); font-style:italic; }
+
+  .chat-card{ background:rgba(251,243,231,0.06); border:1px solid rgba(251,243,231,0.12); border-radius:18px; padding:16px 14px; margin-top:20px; }
+  .chat-card h3{ font-family:'Be Vietnam Pro', sans-serif; font-weight:700; font-size:13px; margin:0 0 12px; color:var(--turmeric); text-transform:uppercase; letter-spacing:.08em; }
+  .chat-messages{ max-height:220px; overflow-y:auto; display:flex; flex-direction:column; gap:8px; padding-right:4px; margin-bottom:12px; }
+  .chat-messages::-webkit-scrollbar{ width:6px; }
+  .chat-messages::-webkit-scrollbar-thumb{ background:rgba(251,243,231,0.2); border-radius:999px; }
+  .chat-empty{ font-size:12.5px; color:rgba(251,243,231,0.4); font-style:italic; }
+  .chat-msg{ font-size:13.5px; line-height:1.4; }
+  .chat-msg.system{ text-align:center; font-size:11.5px; color:rgba(251,243,231,0.4); font-style:italic; }
+  .chat-msg.mine .chat-name{ color:var(--turmeric); }
+  .chat-name{ font-family:'Be Vietnam Pro', sans-serif; font-weight:700; color:var(--teal); margin-right:6px; }
+  .chat-time{ font-size:10.5px; color:rgba(251,243,231,0.35); margin-left:6px; }
+  .chat-text{ color:rgba(251,243,231,0.85); word-break:break-word; }
+  .chat-row{ display:flex; gap:8px; }
+  .chat-row input{ flex:1; min-width:0; border:2px solid rgba(251,243,231,0.16); background:rgba(251,243,231,0.06); border-radius:12px; padding:10px 12px; font-size:13.5px; font-family:'Inter', sans-serif; color:var(--cream); outline:none; transition:border-color .15s ease; }
+  .chat-row input::placeholder{ color:rgba(251,243,231,0.35); }
+  .chat-row input:focus{ border-color:var(--turmeric); }
+  .chat-row button{ flex-shrink:0; border:none; background:var(--teal); color:#fff; font-family:'Be Vietnam Pro', sans-serif; font-weight:700; font-size:13px; padding:0 14px; border-radius:12px; cursor:pointer; }
+  .chat-row button:hover{ filter:brightness(1.08); }
+  .chat-row button:disabled{ background:#6b6255; cursor:not-allowed; }
+
+  .wheel-card{ background:var(--cream); border-radius:22px; padding:26px 20px 24px; box-shadow:var(--paper-shadow); display:flex; flex-direction:column; align-items:center; }
+  .wheel-stage{ position:relative; width:min(85vw, 360px); height:min(85vw, 360px); margin-bottom:22px; }
+  .wheel-stage.landed{ animation:wheelBounce .55s ease; }
+  @keyframes wheelBounce{
+    0%{ transform:scale(1); }
+    30%{ transform:scale(1.07); }
+    55%{ transform:scale(0.97); }
+    75%{ transform:scale(1.03); }
+    100%{ transform:scale(1); }
+  }
+  .pointer{ position:absolute; top:-14px; left:50%; transform:translateX(-50%); z-index:5; filter:drop-shadow(0 4px 4px rgba(0,0,0,0.3)); }
+  .pointer.landed{ animation:pointerNod .55s ease; }
+  @keyframes pointerNod{
+    0%{ transform:translateX(-50%) rotate(0deg); }
+    25%{ transform:translateX(-50%) rotate(-14deg); }
+    55%{ transform:translateX(-50%) rotate(10deg); }
+    80%{ transform:translateX(-50%) rotate(-4deg); }
+    100%{ transform:translateX(-50%) rotate(0deg); }
+  }
+  #wheelCanvas{ width:100%; height:100%; border-radius:50%; transition:transform 4.2s cubic-bezier(0.12,0.67,0.1,1); box-shadow:0 0 0 10px var(--ink), 0 0 0 14px var(--turmeric), var(--paper-shadow); }
+  #wheelCanvas.glow{ animation:wheelGlow 1s ease; }
+  @keyframes wheelGlow{
+    0%{ box-shadow:0 0 0 10px var(--ink), 0 0 0 14px var(--turmeric), 0 0 40px 12px rgba(242,183,5,0.9); }
+    100%{ box-shadow:0 0 0 10px var(--ink), 0 0 0 14px var(--turmeric), var(--paper-shadow); }
+  }
+  .hub{ position:absolute; top:50%; left:50%; width:56px; height:56px; transform:translate(-50%,-50%); background:var(--chili); border-radius:50%; border:4px solid var(--cream); display:flex; align-items:center; justify-content:center; font-size:24px; z-index:4; box-shadow:0 3px 8px rgba(0,0,0,0.3); }
+
+  .spin-btn{ border:none; background:var(--chili); color:#fff; font-family:'Be Vietnam Pro', sans-serif; font-weight:800; font-size:17px; letter-spacing:.02em; padding:15px 40px; border-radius:14px; cursor:pointer; box-shadow:0 6px 0 #A83A1C; transition:transform .08s ease, box-shadow .08s ease, filter .15s ease; }
+  .spin-btn:hover:not(:disabled){ filter:brightness(1.06); }
+  .spin-btn:active:not(:disabled){ transform:translateY(4px); box-shadow:0 2px 0 #A83A1C; }
+  .spin-btn:disabled{ background:#C9BBA6; box-shadow:0 6px 0 #a89778; cursor:not-allowed; color:rgba(255,255,255,0.8); }
+
+  .locked-note{ text-align:center; font-size:13px; color:rgba(36,27,20,0.55); margin-top:14px; display:flex; align-items:center; gap:6px; }
+  .status-line{ text-align:center; font-size:12.5px; color:rgba(251,243,231,0.5); margin-top:14px; }
+
+  .overlay{ position:fixed; inset:0; background:rgba(36,27,20,0.72); display:none; align-items:center; justify-content:center; z-index:50; padding:20px; }
+  .overlay.show{ display:flex; }
+  .modal{ background:var(--cream); border-radius:22px; padding:34px 30px; text-align:center; max-width:340px; width:100%; box-shadow:0 20px 50px rgba(0,0,0,0.5); animation:pop .25s ease; }
+  .modal .eyebrow2{ font-family:'Be Vietnam Pro', sans-serif; font-weight:700; letter-spacing:.14em; text-transform:uppercase; font-size:12px; color:var(--herb); margin-bottom:10px; }
+  .modal .dish{ font-family:'Be Vietnam Pro', sans-serif; font-weight:800; font-size:28px; color:var(--ink); margin:0 0 20px; line-height:1.25; }
+  .modal p.desc{ font-size:13.5px; color:rgba(36,27,20,0.6); margin:-6px 0 16px; }
+  .modal button{ border:none; background:var(--ink); color:var(--cream); font-family:'Be Vietnam Pro', sans-serif; font-weight:700; font-size:14px; padding:12px 26px; border-radius:12px; cursor:pointer; }
+  .modal input{ width:100%; border:2px solid var(--cream-2); background:#fff; border-radius:12px; padding:12px 14px; font-size:15px; font-family:'Inter', sans-serif; color:var(--ink); outline:none; margin:14px 0; }
+  .modal input:focus{ border-color:var(--chili); }
+  .modal .row{ display:flex; gap:10px; justify-content:center; }
+  .modal .row button.secondary{ background:transparent; color:var(--ink); border:2px solid var(--cream-2); }
+
+  footer{ text-align:center; margin-top:22px; display:flex; justify-content:center; gap:18px; flex-wrap:wrap; }
+  footer button{ background:none; border:none; color:rgba(251,243,231,0.4); font-size:12.5px; text-decoration:underline; cursor:pointer; font-family:'Inter',sans-serif; }
+  footer button:hover{ color:rgba(251,243,231,0.7); }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="who-badge" id="whoBadge">🙋 Bạn là ...</div>
+      <div class="admin-badge" id="adminBadge">👑 Đang đăng nhập Admin</div>
+      <div class="eyebrow">Chọn món hôm nay</div>
+      <h1>🍽️ Vòng Quay Món Ăn</h1>
+      <p>Mỗi người chỉ được thêm và xoá món của chính mình.<br>Chỉ admin mới có quyền quay random.</p>
+    </header>
+
+    <div class="layout">
+      <div class="panel-left">
+        <div class="side-card">
+          <h3>Thành viên (<span id="memberCount">0</span>)</h3>
+          <div class="member-list" id="memberList"><div class="history-empty">Đang tải...</div></div>
+        </div>
+
+        <div class="side-card">
+          <h3>Gợi ý món ăn</h3>
+          <div id="suggestList"></div>
+        </div>
+      </div>
+
+      <div class="panel-center">
+        <div class="card">
+          <h2><span class="num">1</span> Thêm món ăn của bạn</h2>
+          <div class="add-row">
+            <input id="foodInput" type="text" placeholder="Ví dụ: Bún chả, Phở bò, Pizza..." maxlength="60">
+            <button id="addBtn">Thêm</button>
+          </div>
+          <div class="tags" id="tagList"></div>
+          <div class="empty-note" id="emptyNote">Chưa có món nào. Hãy là người đầu tiên!</div>
+          <div class="error-note" id="errorNote"></div>
+        </div>
+
+        <div class="wheel-card">
+          <div class="wheel-stage" id="wheelStage">
+            <svg class="pointer" id="pointerEl" width="34" height="34" viewBox="0 0 34 34">
+              <path d="M17 30 C 12 22, 8 16, 8 10 A9 9 0 0 1 26 10 C 26 16, 22 22, 17 30 Z" fill="#241B14"/>
+              <path d="M17 26 C 13.5 20, 11 15, 11 10.5 A6 6 0 0 1 23 10.5 C 23 15, 20.5 20, 17 26 Z" fill="#F2B705"/>
+            </svg>
+            <canvas id="wheelCanvas" width="640" height="640"></canvas>
+            <div class="hub">🥢</div>
+          </div>
+          <button class="spin-btn" id="spinBtn" disabled>Quay Random</button>
+          <div class="locked-note" id="lockedNote" style="display:none;">🔒 Chỉ admin mới quay được</div>
+          <div class="status-line" id="statusLine">Đang tải...</div>
+        </div>
+
+        <footer>
+          <button id="resetBtn" style="display:none;">Xoá toàn bộ danh sách</button>
+          <button id="adminToggle">Đăng nhập Admin</button>
+        </footer>
+      </div>
+
+      <div class="panel-right">
+        <div class="side-card">
+          <h3>Lịch sử quay</h3>
+          <div id="historyList"><div class="history-empty">Chưa có lượt quay nào.</div></div>
+        </div>
+
+        <div class="chat-card">
+          <h3>💬 Trò chuyện</h3>
+          <div class="chat-messages" id="chatMessages"><div class="chat-empty">Chưa có tin nhắn nào.</div></div>
+          <div class="chat-row">
+            <input id="chatInput" type="text" placeholder="Nhắn gì đó..." maxlength="300">
+            <button id="chatSendBtn">Gửi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay" id="resultOverlay">
+    <div class="modal">
+      <div class="eyebrow2">Món được chọn</div>
+      <div class="dish" id="resultDish">—</div>
+      <button id="closeResult">Đóng</button>
+    </div>
+  </div>
+
+  <div class="overlay" id="loginOverlay">
+    <div class="modal">
+      <div class="eyebrow2">Đăng nhập Admin</div>
+      <input id="passwordInput" type="password" placeholder="Nhập mật khẩu admin">
+      <div class="error-note" id="loginError" style="margin-bottom:10px;"></div>
+      <div class="row">
+        <button id="loginSubmit">Đăng nhập</button>
+        <button class="secondary" id="loginCancel">Huỷ</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="overlay show" id="nameOverlay">
+    <div class="modal">
+      <div class="eyebrow2">Chào bạn 👋</div>
+      <p class="desc">Nhập tên để mọi người biết ai đã thêm món nào nhé.</p>
+      <input id="nameInput" type="text" placeholder="Tên của bạn" maxlength="30">
+      <div class="error-note" id="nameError" style="margin-bottom:10px;"></div>
+      <div class="row">
+        <button id="nameSubmit">Vào vòng quay</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  const colors = ['#E4572E','#F2B705','#5B8C5A','#2F9C95','#C1440E','#E0A458','#3D7068','#B33F62'];
+
+  const SUGGESTED_DISHES = [
+    'Phở bò','Bún chả','Bún bò Huế','Cơm tấm','Bánh mì','Bún đậu mắm tôm',
+    'Hủ tiếu','Mì Quảng','Cơm gà','Bánh xèo','Gỏi cuốn','Lẩu thái',
+    'Pizza','Sushi','Gà rán','Mì cay','Trà sữa','Bún riêu'
+  ];
+
+  let items = [];
+  let spinning = false;
+  let currentRotation = 0;
+  let lastSeenSpinId = null;
+  let adminToken = localStorage.getItem('foodwheel_admin_token') || null;
+
+  let myId = localStorage.getItem('foodwheel_my_id');
+  if(!myId){
+    myId = (crypto.randomUUID ? crypto.randomUUID() : 'u-' + Math.random().toString(36).slice(2) + Date.now());
+    localStorage.setItem('foodwheel_my_id', myId);
+  }
+  let myName = localStorage.getItem('foodwheel_my_name') || '';
+
+  const tagList = document.getElementById('tagList');
+  const emptyNote = document.getElementById('emptyNote');
+  const errorNote = document.getElementById('errorNote');
+  const foodInput = document.getElementById('foodInput');
+  const addBtn = document.getElementById('addBtn');
+  const spinBtn = document.getElementById('spinBtn');
+  const lockedNote = document.getElementById('lockedNote');
+  const statusLine = document.getElementById('statusLine');
+  const canvas = document.getElementById('wheelCanvas');
+  const wheelStage = document.getElementById('wheelStage');
+  const pointerEl = document.getElementById('pointerEl');
+  const ctx = canvas.getContext('2d');
+  const resultOverlay = document.getElementById('resultOverlay');
+  const resultDish = document.getElementById('resultDish');
+  const resetBtn = document.getElementById('resetBtn');
+  const adminBadge = document.getElementById('adminBadge');
+  const whoBadge = document.getElementById('whoBadge');
+  const adminToggle = document.getElementById('adminToggle');
+  const loginOverlay = document.getElementById('loginOverlay');
+  const passwordInput = document.getElementById('passwordInput');
+  const loginError = document.getElementById('loginError');
+  const nameOverlay = document.getElementById('nameOverlay');
+  const nameInput = document.getElementById('nameInput');
+  const nameError = document.getElementById('nameError');
+  const suggestList = document.getElementById('suggestList');
+  const historyList = document.getElementById('historyList');
+  const memberList = document.getElementById('memberList');
+  const memberCount = document.getElementById('memberCount');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+  const chatSendBtn = document.getElementById('chatSendBtn');
+  let lastChatCount = 0;
+  let chatReadCount = null; // số tin đã "đọc"; null = chưa khởi tạo lần đầu
+  let unreadCount = 0;
+  const baseTitle = document.title;
+
+  function isAdmin(){ return !!adminToken; }
+
+  function showError(msg){
+    errorNote.textContent = msg;
+    errorNote.style.display = 'block';
+    setTimeout(()=> errorNote.style.display = 'none', 3500);
+  }
+
+  async function api(path, options={}){
+    const headers = Object.assign({ 'Content-Type': 'application/json' }, options.headers || {});
+    if(isAdmin()) headers['Authorization'] = 'Bearer ' + adminToken;
+    const res = await fetch(path, Object.assign({}, options, { headers }));
+    if(res.status === 401){
+      if(isAdmin()){ logout(); }
+    }
+    const data = await res.json().catch(()=> ({}));
+    if(!res.ok) throw new Error(data.error || 'Có lỗi xảy ra');
+    return data;
+  }
+
+  // ---- Bắt buộc nhập tên trước khi dùng ----
+  function requireName(){
+    if(myName){
+      nameOverlay.classList.remove('show');
+      whoBadge.textContent = '🙋 ' + myName;
+      whoBadge.classList.add('show');
+      announceJoin();
+      return;
+    }
+    nameOverlay.classList.add('show');
+  }
+
+  async function announceJoin(){
+    if(!myName) return;
+    try{
+      const data = await fetch('/api/join', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ ownerId: myId, name: myName })
+      }).then(r => r.json());
+      if(data.chat && document.activeElement !== chatInput) renderChat(data.chat);
+    }catch(e){ /* im lặng bỏ qua */ }
+  }
+  document.getElementById('nameSubmit').addEventListener('click', ()=>{
+    const val = nameInput.value.trim();
+    if(!val){ nameError.textContent = 'Vui lòng nhập tên của bạn.'; nameError.style.display='block'; return; }
+    if(val.length > 30){ nameError.textContent = 'Tên tối đa 30 ký tự.'; nameError.style.display='block'; return; }
+    myName = val;
+    localStorage.setItem('foodwheel_my_name', myName);
+    requireName();
+  });
+  nameInput.addEventListener('keydown', e => { if(e.key === 'Enter') document.getElementById('nameSubmit').click(); });
+  whoBadge.addEventListener('click', ()=>{
+    const val = prompt('Đổi tên hiển thị của bạn:', myName);
+    if(val && val.trim()){
+      myName = val.trim().slice(0,30);
+      localStorage.setItem('foodwheel_my_name', myName);
+      whoBadge.textContent = '🙋 ' + myName;
+    }
+  });
+
+  // ---- Gợi ý món ăn (bên trái) ----
+  function renderSuggestions(){
+    suggestList.innerHTML = '';
+    SUGGESTED_DISHES.forEach(name=>{
+      const btn = document.createElement('button');
+      btn.className = 'suggest-chip';
+      btn.type = 'button';
+      btn.textContent = name;
+      btn.addEventListener('click', ()=>{
+        addItem(name);
+      });
+      suggestList.appendChild(btn);
+    });
+  }
+
+  // ---- Lịch sử quay (bên phải) ----
+  function renderHistory(history){
+    if(!history || history.length === 0){
+      historyList.innerHTML = '<div class="history-empty">Chưa có lượt quay nào.</div>';
+      return;
+    }
+    historyList.innerHTML = '';
+    history.forEach(h=>{
+      const el = document.createElement('div');
+      el.className = 'history-item';
+      const time = new Date(h.timestamp).toLocaleString('vi-VN', { hour:'2-digit', minute:'2-digit', day:'2-digit', month:'2-digit' });
+      el.innerHTML = `<div class="dish">${escapeHtml(h.winnerName)}</div><div class="meta">${time} · trong ${h.totalItems} món${h.winnerOwnerName ? ' · của ' + escapeHtml(h.winnerOwnerName) : ''}</div>`;
+      historyList.appendChild(el);
+    });
+  }
+
+  // ---- Chat ----
+  function nearChatBottom(){
+    return (chatMessages.scrollHeight - chatMessages.scrollTop - chatMessages.clientHeight) < 40;
+  }
+
+  function updateTabTitle(){
+    document.title = unreadCount > 0 ? `(${unreadCount}) ${baseTitle}` : baseTitle;
+  }
+
+  function markChatRead(){
+    if(unreadCount === 0) return;
+    unreadCount = 0;
+    chatReadCount = lastChatCount;
+    updateTabTitle();
+  }
+
+  function renderChat(chat){
+    if(!chat || chat.length === 0){
+      chatMessages.innerHTML = '<div class="chat-empty">Chưa có tin nhắn nào.</div>';
+      lastChatCount = 0;
+      chatReadCount = 0;
+      return;
+    }
+    const wasNearBottom = nearChatBottom();
+    chatMessages.innerHTML = '';
+    chat.forEach(m=>{
+      const el = document.createElement('div');
+      if(m.system){
+        el.className = 'chat-msg system';
+        el.textContent = m.text;
+        chatMessages.appendChild(el);
+        return;
+      }
+      el.className = 'chat-msg' + (m.ownerId === myId ? ' mine' : '');
+      const time = new Date(m.timestamp).toLocaleTimeString('vi-VN', { hour:'2-digit', minute:'2-digit' });
+      el.innerHTML = `<span class="chat-name">${escapeHtml(m.name)}</span><span class="chat-text">${escapeHtml(m.text)}</span><span class="chat-time">${time}</span>`;
+      chatMessages.appendChild(el);
+    });
+    if(wasNearBottom || chat.length !== lastChatCount){
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    if(chatReadCount === null){
+      chatReadCount = chat.length; // lần tải đầu tiên, không tính là "chưa đọc"
+    } else if(chat.length > chatReadCount){
+      const viewing = !document.hidden && (document.activeElement === chatInput || wasNearBottom || nearChatBottom());
+      if(viewing){
+        chatReadCount = chat.length;
+      } else {
+        unreadCount += (chat.length - chatReadCount);
+        chatReadCount = chat.length;
+        updateTabTitle();
+      }
+    }
+    lastChatCount = chat.length;
+  }
+
+  async function sendChat(){
+    if(!myName){ requireName(); return; }
+    const text = chatInput.value.trim();
+    if(!text) return;
+    chatSendBtn.disabled = true;
+    try{
+      const data = await api('/api/chat', {
+        method:'POST',
+        body: JSON.stringify({ text, ownerId: myId, name: myName })
+      });
+      renderChat(data.chat);
+      chatInput.value = '';
+      chatInput.focus();
+    }catch(e){ showError(e.message); }
+    chatSendBtn.disabled = false;
+  }
+
+  // ---- Thành viên trong phòng ----
+  function renderMembers(members){
+    memberCount.textContent = members ? members.length : 0;
+    if(!members || members.length === 0){
+      memberList.innerHTML = '<div class="history-empty">Chưa có ai online.</div>';
+      return;
+    }
+    memberList.innerHTML = '';
+    members.forEach(m=>{
+      const el = document.createElement('div');
+      el.className = 'member-item';
+      const isMe = m.ownerId === myId;
+      el.innerHTML = `<span class="member-dot"></span><span class="member-name${isMe ? ' me' : ''}">${escapeHtml(m.name)}${isMe ? ' (Bạn)' : ''}</span>`;
+      memberList.appendChild(el);
+    });
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function updateAdminUI(){
+    adminBadge.classList.toggle('show', isAdmin());
+    adminToggle.textContent = isAdmin() ? 'Đăng xuất Admin' : 'Đăng nhập Admin';
+    resetBtn.style.display = isAdmin() ? 'inline' : 'none';
+    lockedNote.style.display = isAdmin() ? 'none' : 'flex';
+  }
+
+  function render(){
+    tagList.innerHTML = '';
+    if(items.length === 0){
+      emptyNote.style.display = 'block';
+    } else {
+      emptyNote.style.display = 'none';
+      items.forEach(item=>{
+        const tag = document.createElement('div');
+        tag.className = 'tag';
+        const span = document.createElement('span');
+        span.textContent = item.name;
+        const owner = document.createElement('span');
+        owner.className = 'owner';
+        owner.textContent = '· ' + (item.ownerName || 'ẩn danh');
+        const canDelete = isAdmin() || item.ownerId === myId;
+        const btn = document.createElement('button');
+        btn.textContent = '✕';
+        btn.title = 'Xoá món này';
+        if(!canDelete) btn.classList.add('hidden');
+        btn.onclick = () => removeItem(item.id);
+        tag.appendChild(span);
+        tag.appendChild(owner);
+        tag.appendChild(btn);
+        tagList.appendChild(tag);
+      });
+    }
+    spinBtn.disabled = spinning || items.length < 2 || !isAdmin();
+    spinBtn.style.display = isAdmin() ? 'inline-block' : 'none';
+    lockedNote.style.display = isAdmin() ? 'none' : 'flex';
+    statusLine.textContent = spinning
+      ? 'Đang quay...'
+      : (items.length < 2 ? `Cần ít nhất 2 món để quay (hiện có ${items.length})` : `${items.length} món trong vòng quay — sẵn sàng!`);
+    updateAdminUI();
+    drawWheel(items);
+  }
+
+  function drawWheel(list){
+    const w = canvas.width, h = canvas.height;
+    const cx = w/2, cy = h/2, r = w/2 - 6;
+    ctx.clearRect(0,0,w,h);
+
+    if(!list || list.length === 0){
+      ctx.beginPath();
+      ctx.arc(cx,cy,r,0,Math.PI*2);
+      ctx.fillStyle = '#F3E6D2';
+      ctx.fill();
+      ctx.font = '600 24px Inter, sans-serif';
+      ctx.fillStyle = 'rgba(36,27,20,0.4)';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('Thêm món để bắt đầu', cx, cy);
+      return;
+    }
+
+    const n = list.length;
+    const seg = (Math.PI*2)/n;
+    const startOffset = -Math.PI/2;
+
+    list.forEach((item, i)=>{
+      const a0 = startOffset + i*seg;
+      const a1 = a0 + seg;
+      ctx.beginPath();
+      ctx.moveTo(cx,cy);
+      ctx.arc(cx,cy,r,a0,a1);
+      ctx.closePath();
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fill();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#FBF3E7';
+      ctx.stroke();
+
+      ctx.save();
+      ctx.translate(cx,cy);
+      ctx.rotate(a0 + seg/2);
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#FBF3E7';
+      const fontSize = n > 10 ? 15 : (n > 6 ? 18 : 21);
+      ctx.font = `700 ${fontSize}px 'Be Vietnam Pro', sans-serif`;
+      let label = item.name;
+      const maxChars = n > 10 ? 12 : 18;
+      if(label.length > maxChars) label = label.slice(0, maxChars-1) + '…';
+      ctx.fillText(label, r - 18, 0);
+      ctx.restore();
+    });
+  }
+
+  async function addItem(presetName){
+    if(!myName){ requireName(); return; }
+    const name = (typeof presetName === 'string' ? presetName : foodInput.value).trim();
+    if(!name) return;
+    addBtn.disabled = true;
+    try{
+      const data = await api('/api/items', {
+        method:'POST',
+        body: JSON.stringify({ name, ownerId: myId, ownerName: myName })
+      });
+      items = data.items;
+      if(typeof presetName !== 'string') foodInput.value = '';
+      render();
+    }catch(e){ showError(e.message); }
+    addBtn.disabled = false;
+  }
+
+  async function removeItem(id){
+    try{
+      const data = await api('/api/items/' + id, { method:'DELETE', headers: { 'X-Owner-Id': myId } });
+      items = data.items;
+      render();
+    }catch(e){ showError(e.message); }
+  }
+
+  function playLandingEffect(){
+    wheelStage.classList.remove('landed'); pointerEl.classList.remove('landed'); canvas.classList.remove('glow');
+    void wheelStage.offsetWidth; // reset animation
+    wheelStage.classList.add('landed');
+    pointerEl.classList.add('landed');
+    canvas.classList.add('glow');
+    setTimeout(()=>{
+      wheelStage.classList.remove('landed');
+      pointerEl.classList.remove('landed');
+      canvas.classList.remove('glow');
+    }, 1000);
+  }
+
+  function animateSpinTo(list, winnerIndex, onDone){
+    const n = list.length;
+    const seg = 360/n;
+    const winnerCenter = winnerIndex*seg + seg/2;
+    const fullSpins = 5 + Math.floor(Math.random()*3);
+    const delta = (360 - winnerCenter) - (currentRotation % 360);
+    const normalizedDelta = ((delta % 360) + 360) % 360;
+    currentRotation += fullSpins*360 + normalizedDelta;
+    drawWheel(list);
+    canvas.style.transform = `rotate(${currentRotation}deg)`;
+    setTimeout(()=>{
+      playLandingEffect();
+      onDone();
+    }, 4300);
+  }
+
+  async function spin(){
+    if(spinning || items.length < 2 || !isAdmin()) return;
+    try{
+      spinning = true;
+      render();
+      const data = await api('/api/spin', { method:'POST' });
+      const ls = data.lastSpin;
+      lastSeenSpinId = ls.spinId;
+      animateSpinTo(ls.itemsSnapshot, ls.winnerIndex, ()=>{
+        spinning = false;
+        items = ls.itemsSnapshot;
+        render();
+        renderHistory(data.history);
+        resultDish.textContent = ls.winnerName;
+        resultOverlay.classList.add('show');
+      });
+    }catch(e){
+      spinning = false;
+      render();
+      showError(e.message);
+    }
+  }
+
+  async function resetAll(){
+    if(!isAdmin()) return;
+    if(!confirm('Xoá toàn bộ danh sách món ăn cho mọi người?')) return;
+    try{
+      const data = await api('/api/reset', { method:'POST', body: JSON.stringify({ clearHistory:false }) });
+      items = data.items;
+      render();
+    }catch(e){ showError(e.message); }
+  }
+
+  function openLogin(){
+    passwordInput.value = '';
+    loginError.style.display = 'none';
+    loginOverlay.classList.add('show');
+    setTimeout(()=> passwordInput.focus(), 50);
+  }
+  function closeLogin(){ loginOverlay.classList.remove('show'); }
+
+  async function login(){
+    const password = passwordInput.value;
+    try{
+      const res = await fetch('/api/admin/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ password })
+      });
+      const data = await res.json();
+      if(!res.ok) throw new Error(data.error || 'Sai mật khẩu');
+      adminToken = data.token;
+      localStorage.setItem('foodwheel_admin_token', adminToken);
+      closeLogin();
+      render();
+    }catch(e){
+      loginError.textContent = e.message;
+      loginError.style.display = 'block';
+    }
+  }
+
+  function logout(){
+    adminToken = null;
+    localStorage.removeItem('foodwheel_admin_token');
+    render();
+  }
+
+  addBtn.addEventListener('click', addItem);
+  foodInput.addEventListener('keydown', e => { if(e.key === 'Enter') addItem(); });
+  spinBtn.addEventListener('click', spin);
+  resetBtn.addEventListener('click', resetAll);
+  document.getElementById('closeResult').addEventListener('click', ()=> resultOverlay.classList.remove('show'));
+  resultOverlay.addEventListener('click', (e)=>{ if(e.target === resultOverlay) resultOverlay.classList.remove('show'); });
+
+  adminToggle.addEventListener('click', ()=>{
+    if(isAdmin()) logout(); else openLogin();
+  });
+  document.getElementById('loginCancel').addEventListener('click', closeLogin);
+  document.getElementById('loginSubmit').addEventListener('click', login);
+  passwordInput.addEventListener('keydown', e => { if(e.key === 'Enter') login(); });
+  loginOverlay.addEventListener('click', (e)=>{ if(e.target === loginOverlay) closeLogin(); });
+
+  chatSendBtn.addEventListener('click', sendChat);
+  chatInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendChat(); });
+  chatInput.addEventListener('focus', markChatRead);
+  chatMessages.addEventListener('scroll', ()=>{ if(nearChatBottom()) markChatRead(); });
+  document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && nearChatBottom()) markChatRead(); });
+
+  async function poll(){
+    try{
+      const qs = '?ownerId=' + encodeURIComponent(myId) + (myName ? '&name=' + encodeURIComponent(myName) : '');
+      const data = await api('/api/state' + qs);
+      items = data.items;
+      if(lastSeenSpinId === null) lastSeenSpinId = data.spinId; // đừng phát lại kết quả cũ khi vừa mở trang
+      renderMembers(data.members);
+      if(document.activeElement !== chatInput) renderChat(data.chat);
+      if(!spinning && data.lastSpin && data.spinId !== lastSeenSpinId){
+        lastSeenSpinId = data.spinId;
+        spinning = true;
+        render();
+        animateSpinTo(data.lastSpin.itemsSnapshot, data.lastSpin.winnerIndex, ()=>{
+          spinning = false;
+          items = data.lastSpin.itemsSnapshot;
+          render();
+          renderHistory(data.history);
+          resultDish.textContent = data.lastSpin.winnerName;
+          resultOverlay.classList.add('show');
+        });
+      } else if(!spinning){
+        renderHistory(data.history);
+        render();
+      }
+    }catch(e){ /* im lặng bỏ qua lỗi mạng tạm thời */ }
+  }
+
+  (async function init(){
+    renderSuggestions();
+    requireName();
+    await poll();
+    setInterval(()=>{ if(document.activeElement !== foodInput && document.activeElement !== nameInput) poll(); }, 2500);
+  })();
+})();
+</script>
+</body>
+</html>

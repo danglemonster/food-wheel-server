@@ -1,0 +1,15 @@
+{
+  "name": "food-wheel-server",
+  "version": "1.0.0",
+  "description": "Server quay random món ăn - chỉ admin mới được quay",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
