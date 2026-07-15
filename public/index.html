@@ -376,22 +376,12 @@
       nameOverlay.classList.remove('show');
       whoBadge.textContent = '🙋 ' + myName;
       whoBadge.classList.add('show');
-      announceJoin();
+      sendHello();
       return;
     }
     nameOverlay.classList.add('show');
   }
 
-  async function announceJoin(){
-    if(!myName) return;
-    try{
-      const data = await fetch('/api/join', {
-        method:'POST', headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ ownerId: myId, name: myName })
-      }).then(r => r.json());
-      if(data.chat && document.activeElement !== chatInput) renderChat(data.chat);
-    }catch(e){ /* im lặng bỏ qua */ }
-  }
   document.getElementById('nameSubmit').addEventListener('click', ()=>{
     const val = nameInput.value.trim();
     if(!val){ nameError.textContent = 'Vui lòng nhập tên của bạn.'; nameError.style.display='block'; return; }
@@ -407,6 +397,7 @@
       myName = val.trim().slice(0,30);
       localStorage.setItem('foodwheel_my_name', myName);
       whoBadge.textContent = '🙋 ' + myName;
+      sendHello();
     }
   });
 
@@ -504,11 +495,10 @@
     if(!text) return;
     chatSendBtn.disabled = true;
     try{
-      const data = await api('/api/chat', {
+      await api('/api/chat', {
         method:'POST',
         body: JSON.stringify({ text, ownerId: myId, name: myName })
       });
-      renderChat(data.chat);
       chatInput.value = '';
       chatInput.focus();
     }catch(e){ showError(e.message); }
@@ -636,22 +626,19 @@
     if(!name) return;
     addBtn.disabled = true;
     try{
-      const data = await api('/api/items', {
+      await api('/api/items', {
         method:'POST',
         body: JSON.stringify({ name, ownerId: myId, ownerName: myName })
       });
-      items = data.items;
       if(typeof presetName !== 'string') foodInput.value = '';
-      render();
+      // Không cần tự cập nhật items ở đây - WebSocket sẽ đẩy trạng thái mới về ngay.
     }catch(e){ showError(e.message); }
     addBtn.disabled = false;
   }
 
   async function removeItem(id){
     try{
-      const data = await api('/api/items/' + id, { method:'DELETE', headers: { 'X-Owner-Id': myId } });
-      items = data.items;
-      render();
+      await api('/api/items/' + id, { method:'DELETE', headers: { 'X-Owner-Id': myId } });
     }catch(e){ showError(e.message); }
   }
 
@@ -684,36 +671,27 @@
     }, 4300);
   }
 
+  let spinRequestPending = false;
   async function spin(){
-    if(spinning || items.length < 2 || !isAdmin()) return;
+    if(spinning || spinRequestPending || items.length < 2 || !isAdmin()) return;
+    spinRequestPending = true;
+    spinBtn.disabled = true;
     try{
-      spinning = true;
-      render();
-      const data = await api('/api/spin', { method:'POST' });
-      const ls = data.lastSpin;
-      lastSeenSpinId = ls.spinId;
-      animateSpinTo(ls.itemsSnapshot, ls.winnerIndex, ()=>{
-        spinning = false;
-        items = ls.itemsSnapshot;
-        render();
-        renderHistory(data.history);
-        resultDish.textContent = ls.winnerName;
-        resultOverlay.classList.add('show');
-      });
+      // Chỉ gửi yêu cầu quay - server sẽ random và đẩy (broadcast) kết quả qua
+      // WebSocket cho TẤT CẢ mọi người (kể cả mình) cùng lúc để animation đồng bộ.
+      await api('/api/spin', { method:'POST' });
     }catch(e){
-      spinning = false;
-      render();
       showError(e.message);
     }
+    spinRequestPending = false;
+    if(!spinning) render();
   }
 
   async function resetAll(){
     if(!isAdmin()) return;
     if(!confirm('Xoá toàn bộ danh sách món ăn cho mọi người?')) return;
     try{
-      const data = await api('/api/reset', { method:'POST', body: JSON.stringify({ clearHistory:false }) });
-      items = data.items;
-      render();
+      await api('/api/reset', { method:'POST' });
     }catch(e){ showError(e.message); }
   }
 
@@ -771,38 +749,73 @@
   chatMessages.addEventListener('scroll', ()=>{ if(nearChatBottom()) markChatRead(); });
   document.addEventListener('visibilitychange', ()=>{ if(!document.hidden && nearChatBottom()) markChatRead(); });
 
-  async function poll(){
-    try{
-      const qs = '?ownerId=' + encodeURIComponent(myId) + (myName ? '&name=' + encodeURIComponent(myName) : '');
-      const data = await api('/api/state' + qs);
-      items = data.items;
-      if(lastSeenSpinId === null) lastSeenSpinId = data.spinId; // đừng phát lại kết quả cũ khi vừa mở trang
-      renderMembers(data.members);
-      if(document.activeElement !== chatInput) renderChat(data.chat);
-      if(!spinning && data.lastSpin && data.spinId !== lastSeenSpinId){
-        lastSeenSpinId = data.spinId;
-        spinning = true;
-        render();
-        animateSpinTo(data.lastSpin.itemsSnapshot, data.lastSpin.winnerIndex, ()=>{
-          spinning = false;
-          items = data.lastSpin.itemsSnapshot;
-          render();
-          renderHistory(data.history);
-          resultDish.textContent = data.lastSpin.winnerName;
-          resultOverlay.classList.add('show');
-        });
-      } else if(!spinning){
-        renderHistory(data.history);
-        render();
-      }
-    }catch(e){ /* im lặng bỏ qua lỗi mạng tạm thời */ }
+  // ---- WebSocket: nhận cập nhật real-time, không cần chờ poll nữa ----
+  let ws = null;
+  let wsReconnectTimer = null;
+  let wsReconnectDelay = 1500;
+
+  function wsSend(obj){
+    if(ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj));
   }
 
-  (async function init(){
+  function sendHello(){
+    wsSend({ type:'hello', ownerId: myId, name: myName || '' });
+  }
+
+  function handleStateMessage(data){
+    items = data.items;
+    renderMembers(data.members);
+    renderChat(data.chat);
+
+    if(lastSeenSpinId === null) lastSeenSpinId = data.spinId; // đừng phát lại kết quả cũ khi vừa mở trang
+    if(!spinning && data.lastSpin && data.spinId !== lastSeenSpinId){
+      lastSeenSpinId = data.spinId;
+      spinning = true;
+      render();
+      animateSpinTo(data.lastSpin.itemsSnapshot, data.lastSpin.winnerIndex, ()=>{
+        spinning = false;
+        items = data.lastSpin.itemsSnapshot;
+        render();
+        renderHistory(data.history);
+        resultDish.textContent = data.lastSpin.winnerName;
+        resultOverlay.classList.add('show');
+      });
+    } else if(!spinning){
+      renderHistory(data.history);
+      render();
+    }
+  }
+
+  function connectWS(){
+    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    ws = new WebSocket(`${protocol}//${location.host}`);
+
+    ws.addEventListener('open', ()=>{
+      wsReconnectDelay = 1500; // kết nối lại thành công -> reset độ trễ retry
+      clearTimeout(wsReconnectTimer);
+      sendHello();
+    });
+
+    ws.addEventListener('message', (evt)=>{
+      let data;
+      try{ data = JSON.parse(evt.data); }catch(e){ return; }
+      if(data.type === 'state') handleStateMessage(data);
+    });
+
+    ws.addEventListener('close', ()=>{
+      // server free-tier có thể "ngủ" hoặc mất mạng tạm thời -> tự thử kết nối lại
+      clearTimeout(wsReconnectTimer);
+      wsReconnectTimer = setTimeout(connectWS, wsReconnectDelay);
+      wsReconnectDelay = Math.min(wsReconnectDelay * 1.5, 15000);
+    });
+
+    ws.addEventListener('error', ()=>{ ws.close(); });
+  }
+
+  (function init(){
     renderSuggestions();
     requireName();
-    await poll();
-    setInterval(()=>{ if(document.activeElement !== foodInput && document.activeElement !== nameInput) poll(); }, 2500);
+    connectWS();
   })();
 })();
 </script>

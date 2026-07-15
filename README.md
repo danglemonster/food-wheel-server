@@ -1,62 +1,82 @@
-# 🍽️ Vòng Quay Món Ăn — Server
+# 🍽️ Vòng Quay Món Ăn — Server (WebSocket + Upstash Redis)
 
-Server Node.js nhỏ gọn để nhiều người cùng vào 1 link, thêm món ăn muốn ăn.
-**Chỉ admin (biết mật khẩu) mới có quyền bấm quay random.**
+Server Node.js để nhiều người cùng vào 1 link, thêm món ăn muốn ăn, chat, xem ai đang online.
+**Chỉ admin (biết mật khẩu) mới quay được.** Cập nhật **real-time qua WebSocket** — không cần
+tải lại trang, không có độ trễ chờ như trước. Dữ liệu lưu trên **Upstash Redis** (free, không bị
+mất khi server restart/deploy lại — khác với việc lưu bằng file, vốn không dùng được trên gói free
+của Render vì ổ đĩa ở đó không bền vững).
 
-## 1. Chạy thử trên máy của bạn
+## 1. Tạo database Upstash Redis (miễn phí, ~2 phút)
 
-Cần cài [Node.js](https://nodejs.org) bản 18 trở lên.
+1. Vào [console.upstash.com](https://console.upstash.com) → đăng ký (có thể dùng GitHub) → **Create Database**.
+2. Đặt tên tuỳ ý, chọn region gần Render nhất (ví dụ Singapore/Tokyo nếu bạn deploy Render ở khu vực đó).
+3. Sau khi tạo xong, vào tab **REST API**, copy 2 giá trị:
+   - `UPSTASH_REDIS_REST_URL`
+   - `UPSTASH_REDIS_REST_TOKEN`
+
+Đây là 2 biến môi trường bạn sẽ cần khi chạy server.
+
+## 2. Chạy thử trên máy của bạn
+
+Cần [Node.js](https://nodejs.org) bản 18 trở lên.
 
 ```bash
 cd food-wheel-server
 npm install
-ADMIN_PASSWORD="matkhau-cua-ban" npm start
+ADMIN_PASSWORD="matkhau-cua-ban" \
+UPSTASH_REDIS_REST_URL="https://xxxx.upstash.io" \
+UPSTASH_REDIS_REST_TOKEN="xxxxxxxx" \
+npm start
 ```
 
-Mở trình duyệt vào `http://localhost:3000`.
+Mở `http://localhost:3000`. Nếu chưa cấu hình 2 biến Upstash, server **vẫn chạy được** (để bạn test
+nhanh giao diện) nhưng sẽ in cảnh báo và **không lưu dữ liệu** — mọi thứ mất khi restart.
 
-- **Người bình thường**: chỉ cần mở link, gõ món ăn, bấm "Thêm".
-- **Admin**: bấm "Đăng nhập Admin" ở cuối trang, nhập mật khẩu (chính là giá trị `ADMIN_PASSWORD` bạn đặt lúc chạy server) để mở khoá nút "Quay Random", xoá món, và reset danh sách.
+## 3. Có gì thay đổi so với bản trước?
 
-⚠️ Nếu không đặt `ADMIN_PASSWORD`, server sẽ dùng mật khẩu mặc định `admin123` — nhớ đổi trước khi gửi link cho người khác.
+| | Bản cũ | Bản này |
+|---|---|---|
+| Cập nhật cho người xem | Polling mỗi 2.5s | **WebSocket đẩy real-time**, gần như tức thời |
+| Lưu dữ liệu | File `data.json` trên ổ đĩa server | **Upstash Redis** (REST API, không cần ổ đĩa bền vững) |
+| Thành viên online | Suy đoán qua "nhịp tim" polling (TTL 8s) | Biết chính xác qua kết nối WebSocket còn sống hay không |
 
-## 2. Cách hoạt động
+Về mặt sử dụng, giao diện và tính năng (thêm/xoá món, quay, chat, lịch sử, thông báo tab...)
+giữ nguyên như trước — chỉ phần "dưới nắp capo" là real-time và bền vững hơn.
 
-- Dữ liệu (danh sách món + kết quả quay gần nhất) được lưu trong file `data.json` ngay trên server, nên **không mất khi tắt/bật lại server**.
-- Mọi trình duyệt tự động kiểm tra dữ liệu mới mỗi 2.5 giây, nên khi admin quay, tất cả mọi người đang mở link đều thấy bánh xe tự quay và ra cùng 1 kết quả.
-- Quyền admin dựa trên mật khẩu → token lưu trong trình duyệt (12 giờ), không cần tài khoản, không cần database.
+## 4. Đưa lên Render.com (free) để gửi link cho mọi người
 
-## 3. Đưa lên internet để gửi link cho mọi người
-
-Vài lựa chọn deploy miễn phí/dễ dùng nhất cho 1 project Node.js nhỏ như thế này:
-
-### Cách A — Render.com (khuyên dùng, có gói free)
-1. Đẩy thư mục `food-wheel-server` này lên 1 repo GitHub.
-2. Vào [render.com](https://render.com) → New → Web Service → chọn repo đó.
-3. Build command: `npm install`, Start command: `npm start`.
-4. Ở phần Environment Variables, thêm `ADMIN_PASSWORD` = mật khẩu bạn muốn.
+1. Đẩy thư mục `food-wheel-server` lên 1 repo GitHub.
+2. Vào [render.com](https://render.com) → **New** → **Web Service** → chọn repo đó.
+3. Build command: `npm install` — Start command: `npm start`.
+4. Ở phần **Environment Variables**, thêm cả 3 biến:
+   - `ADMIN_PASSWORD` = mật khẩu bạn muốn
+   - `UPSTASH_REDIS_REST_URL` = URL lấy ở bước 1
+   - `UPSTASH_REDIS_REST_TOKEN` = token lấy ở bước 1
 5. Deploy xong, Render cho bạn 1 link dạng `https://ten-app.onrender.com` — gửi link này cho mọi người.
 
-### Cách B — Railway.app
-Tương tự Render: kết nối repo GitHub, thêm biến môi trường `ADMIN_PASSWORD`, deploy, lấy link public.
+⚠️ **Lưu ý về gói free của Render**: service sẽ tự "ngủ" sau 15 phút không có ai truy cập, và lần
+truy cập tiếp theo sẽ mất khoảng 30–60 giây để "thức dậy" (cold start). Trong lúc đó kết nối
+WebSocket sẽ bị rớt — nhưng client đã được viết để **tự động kết nối lại** khi server sẵn sàng trở
+lại, không cần người dùng tải lại trang thủ công. Dữ liệu thì luôn an toàn vì đã nằm trên Upstash,
+không phụ thuộc vào việc Render service ngủ hay thức.
 
-### Cách C — VPS riêng (DigitalOcean, EC2, v.v.)
-```bash
-git clone <repo-cua-ban>
-cd food-wheel-server
-npm install
-ADMIN_PASSWORD="matkhau-cua-ban" PORT=3000 npm start
-```
-Dùng `pm2` để chạy nền lâu dài và tự khởi động lại nếu crash:
-```bash
-npm install -g pm2
-ADMIN_PASSWORD="matkhau-cua-ban" pm2 start server.js --name food-wheel
-pm2 save
-```
-Sau đó cấu hình domain/Nginx trỏ vào cổng server nếu muốn có tên miền đẹp.
+Nếu không muốn chờ cold start, cân nhắc:
+- Dùng dịch vụ "ping định kỳ" để giữ service không ngủ (có nhiều tool miễn phí làm việc này), hoặc
+- Nâng cấp lên gói trả phí thấp nhất của Render (không còn bị spin-down).
 
-## 4. Lưu ý
+### Cách khác: Railway.app
+Tương tự Render: kết nối repo GitHub, thêm 3 biến môi trường như trên, deploy, lấy link public.
+Railway không có spin-down như Render free nên trải nghiệm mượt hơn, nhưng free tier có giới hạn
+giờ chạy/tháng thay vì giới hạn theo kiểu ngủ-thức.
 
-- Đây là lưu trữ bằng file JSON — phù hợp cho nhóm nhỏ (vài chục người, vài trăm món). Nếu cần dùng quy mô lớn hơn hoặc nhiều phòng/nhóm khác nhau cùng lúc, nên nâng cấp sang một database thật (SQLite/Postgres).
-- Đổi mật khẩu admin bất cứ lúc nào bằng cách đổi biến môi trường `ADMIN_PASSWORD` và khởi động lại server.
-# food-wheel-server
+## 5. Giới hạn của Upstash free tier
+
+Upstash có gói free khá rộng rãi cho quy mô ứng dụng nhỏ như thế này (vài chục người, vài trăm
+món/tin nhắn). Nếu app phát triển lớn hơn (nhiều phòng, nhiều người dùng đồng thời liên tục),
+hãy kiểm tra hạn mức mới nhất tại [trang giá của Upstash](https://upstash.com/pricing) trước khi
+mở rộng.
+
+## 6. Đổi mật khẩu admin
+
+Đổi biến môi trường `ADMIN_PASSWORD` rồi khởi động lại server (trên Render: vào Environment →
+sửa giá trị → service tự deploy lại).
